@@ -42,9 +42,8 @@ jobs:
 
       - name: Deploy
         run: |
-          kubectl set image deployment/workflow-tester \
-            workflow-tester=localhost:30500/workflow-tester:${{ env.VERSION }} \
-            -n yonyawn
+          sed -i "s|localhost:30500/workflow-tester:latest|localhost:30500/workflow-tester:${{ env.VERSION }}|g" k8s/deployment.yaml
+          kubectl apply -f k8s/deployment.yaml -n yonyawn
 
       - name: Clean up old images
         run: |
