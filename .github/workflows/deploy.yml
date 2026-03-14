@@ -39,6 +39,8 @@ jobs:
           docker push localhost:30500/workflow-tester:${{ env.VERSION }}
 
       - name: Deploy
+        env:
+          KUBECONFIG: /home/sibby/.kube/config
         run: |
           sed -i "s|localhost:30500/workflow-tester:latest|localhost:30500/workflow-tester:${{ env.VERSION }}|g" k8s/deployment.yaml
           kubectl apply -f k8s/deployment.yaml -n yonyawn
