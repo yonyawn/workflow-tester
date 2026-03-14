@@ -35,10 +35,8 @@ jobs:
 
       - name: Build and push
         run: |
-          docker build -t localhost:30500/workflow-tester:${{ env.VERSION }} \
-                       -t localhost:30500/workflow-tester:latest .
+          docker build -t localhost:30500/workflow-tester:${{ env.VERSION }} .
           docker push localhost:30500/workflow-tester:${{ env.VERSION }}
-          docker push localhost:30500/workflow-tester:latest
 
       - name: Deploy
         run: |
