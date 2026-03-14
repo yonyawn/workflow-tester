@@ -28,7 +28,41 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Get version
+        run: |
+          VERSION=$(python3 -c "import tomllib; f=open('pyproject.toml','rb'); data=tomllib.load(f); print(data['project']['version'])")
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
       - name: Build and push
         run: |
-          docker build -t localhost:30500/workflow-tester:latest .
-          docker push localhost:30500/workflow-tester:latest
+          docker build -t localhost:30500/workflow-tester:${{ env.VERSION }} .
+          docker push localhost:30500/workflow-tester:${{ env.VERSION }}
+
+      - name: Deploy
+        run: |
+          sed -i "s|localhost:30500/workflow-tester:latest|localhost:30500/workflow-tester:${{ env.VERSION }}|g" k8s/deployment.yaml
+          kubectl apply -f k8s/deployment.yaml -n yonyawn
+
+      - name: Clean up old images
+        run: |
+          TAGS=$(curl -s http://localhost:30500/v2/workflow-tester/tags/list | \
+            python3 -c "import sys,json; tags=json.load(sys.stdin)['tags']; print('\n'.join(tags))" | \
+            grep -v latest | \
+            sort -V | \
+            head -n -2)
+
+          for TAG in $TAGS; do
+            echo "Deleting old image: $TAG"
+            DIGEST=$(curl -s -I \
+              -H "Accept: application/vnd.docker.distribution.manifest.v2+json" \
+              "http://localhost:30500/v2/workflow-tester/manifests/$TAG" | \
+              grep Docker-Content-Digest | awk '{print $2}' | tr -d $'\r')
+            curl -s -X DELETE \
+              "http://localhost:30500/v2/workflow-tester/manifests/$DIGEST"
+          done
+
+      - name: Run registry garbage collection
+        run: |
+          kubectl exec -n yonyawn \
+            $(kubectl get pod -n yonyawn -l app=registry -o jsonpath='{.items[0].metadata.name}') \
+            -- /bin/registry garbage-collect /etc/docker/registry/config.yml
