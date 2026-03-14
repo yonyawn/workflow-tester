@@ -25,6 +25,8 @@ jobs:
     runs-on: self-hosted
     needs: test
     if: github.event_name == 'push'
+    env:
+      KUBECONFIG: /home/sibby/.kube/config
     steps:
       - uses: actions/checkout@v4
 
@@ -39,8 +41,6 @@ jobs:
           docker push localhost:30500/workflow-tester:${{ env.VERSION }}
 
       - name: Deploy
-        env:
-          KUBECONFIG: /home/sibby/.kube/config
         run: |
           sed -i "s|localhost:30500/workflow-tester:latest|localhost:30500/workflow-tester:${{ env.VERSION }}|g" k8s/deployment.yaml
           kubectl apply -f k8s/deployment.yaml -n yonyawn
