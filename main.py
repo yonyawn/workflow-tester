@@ -4,6 +4,11 @@ from calculator import add, subtract, multiply, divide
 app = FastAPI(title="Calculator API")
 
 
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
+
+
 @app.get("/add")
 def route_add(a: float, b: float):
     return {"result": add(a, b)}
