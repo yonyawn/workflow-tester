@@ -47,9 +47,10 @@ metadata:
   name: workflow-tester
   namespace: yonyawn
 spec:
-  type: ClusterIP
+  type: NodePort
   selector:
     app: workflow-tester
   ports:
     - port: 80
       targetPort: 8000
+      nodePort: 30800
