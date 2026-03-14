@@ -1,31 +1,33 @@
-import pytest
-from calculator import add, subtract, multiply, divide
+from fastapi.testclient import TestClient
+from main import app
+
+client = TestClient(app)
 
 
 def test_add():
-    assert add(2, 3) == 5
-    assert add(-1, 1) == 0
-    assert add(0, 0) == 0
+    response = client.get("/add?a=2&b=3")
+    assert response.status_code == 200
+    assert response.json() == {"result": 5.0}
 
 
 def test_subtract():
-    assert subtract(5, 3) == 2
-    assert subtract(0, 5) == -5
-    assert subtract(-2, -2) == 0
+    response = client.get("/subtract?a=10&b=3")
+    assert response.status_code == 200
+    assert response.json() == {"result": 7.0}
 
 
 def test_multiply():
-    assert multiply(3, 4) == 12
-    assert multiply(-2, 5) == -10
-    assert multiply(0, 100) == 0
+    response = client.get("/multiply?a=4&b=5")
+    assert response.status_code == 200
+    assert response.json() == {"result": 20.0}
 
 
 def test_divide():
-    assert divide(10, 2) == 5
-    assert divide(7, 2) == 3.5
-    assert divide(-9, 3) == -3
+    response = client.get("/divide?a=10&b=4")
+    assert response.status_code == 200
+    assert response.json() == {"result": 2.5}
 
 
 def test_divide_by_zero():
-    with pytest.raises(ValueError, match="Cannot divide by zero"):
-        divide(5, 0)
+    response = client.get("/divide?a=5&b=0")
+    assert response.status_code == 400

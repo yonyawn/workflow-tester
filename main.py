@@ -1,13 +1,27 @@
+from fastapi import FastAPI, HTTPException
 from calculator import add, subtract, multiply, divide
 
-
-def main():
-    print("Workflow Tester Calculator")
-    print(f"  3 + 4 = {add(3, 4)}")
-    print(f"  10 - 6 = {subtract(10, 6)}")
-    print(f"  5 * 7 = {multiply(5, 7)}")
-    print(f"  9 / 2 = {divide(9, 2)}")
+app = FastAPI(title="Calculator API")
 
 
-if __name__ == "__main__":
-    main()
+@app.get("/add")
+def route_add(a: float, b: float):
+    return {"result": add(a, b)}
+
+
+@app.get("/subtract")
+def route_subtract(a: float, b: float):
+    return {"result": subtract(a, b)}
+
+
+@app.get("/multiply")
+def route_multiply(a: float, b: float):
+    return {"result": multiply(a, b)}
+
+
+@app.get("/divide")
+def route_divide(a: float, b: float):
+    try:
+        return {"result": divide(a, b)}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
